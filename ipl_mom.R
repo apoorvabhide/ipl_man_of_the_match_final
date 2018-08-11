@@ -41,28 +41,6 @@ batsmen_test$is_mom[batsmen_test$batsman == batsmen_test$player_of_match] <- 1
 batsmen_test$winning_side <- 0
 batsmen_test$winning_side[batsmen_test$team == batsmen_test$winner] <- 1
 
-# #Classify runs into bins
-# batsmen_train$run_class[batsmen_train$runs > 100] <- '100+'
-# batsmen_train$run_class[batsmen_train$runs < 100 & batsmen_train$runs >= 80] <- '80-100'
-# batsmen_train$run_class[batsmen_train$runs < 80 & batsmen_train$runs >= 60] <- '60-80'
-# batsmen_train$run_class[batsmen_train$runs < 60 & batsmen_train$runs >= 50] <- '50-60'
-# batsmen_train$run_class[batsmen_train$runs < 50 & batsmen_train$runs >= 40] <- '40-50'
-# batsmen_train$run_class[batsmen_train$runs < 40 & batsmen_train$runs >= 30] <- '30-40'
-# batsmen_train$run_class[batsmen_train$runs < 30 & batsmen_train$runs >= 20] <- '20-30'
-# batsmen_train$run_class[batsmen_train$runs < 20 & batsmen_train$runs >= 10] <- '10-20'
-# batsmen_train$run_class[batsmen_train$runs < 10 & batsmen_train$runs >= 0] <- '0-10'
-
-# #Repeat this for test
-# batsmen_test$run_class[batsmen_test$runs > 100] <- '100+'
-# batsmen_test$run_class[batsmen_test$runs <= 100 & batsmen_test$runs > 80] <- '80-100'
-# batsmen_test$run_class[batsmen_test$runs <= 80 & batsmen_test$runs > 60] <- '60-80'
-# batsmen_test$run_class[batsmen_test$runs <= 60 & batsmen_test$runs > 50] <- '50-60'
-# batsmen_test$run_class[batsmen_test$runs <= 50 & batsmen_test$runs > 40] <- '40-50'
-# batsmen_test$run_class[batsmen_test$runs <= 40 & batsmen_test$runs > 30] <- '30-40'
-# batsmen_test$run_class[batsmen_test$runs <= 30 & batsmen_test$runs > 20] <- '20-30'
-# batsmen_test$run_class[batsmen_test$runs <= 20 & batsmen_test$runs > 10] <- '10-20'
-# batsmen_test$run_class[batsmen_test$runs <= 10 & batsmen_test$runs >= 0] <- '0-10'
-
 #Add a column to indicate if top scorer of the match
 batsmen_train$max_score <- ave(batsmen_train$runs, batsmen_train$match_id, FUN = max)
 batsmen_train$is_top_scorer <- 0
@@ -143,95 +121,121 @@ mom_test_summary <- aggregate(is_mom ~ winning_side + is_top_scorer + is_top_wic
 sum(mom_train_summary$is_mom)
 sum(mom_test_summary$is_mom)
 
-#Here's something interesting for ya: 97.8% of all MoM's are from the winning side in the training set
-#It's also 98% in the test set, so there's that, too.
+prf <- function()
+{
+  tp <- length(which(players_test$is_mom == 1 & players_test$prediction_mom == 1))
+  tn <- length(which(players_test$is_mom == 0 & players_test$prediction_mom == 0))
+  fp <- length(which(players_test$is_mom == 0 & players_test$prediction_mom == 1))
+  fn <- length(which(players_test$is_mom == 1 & players_test$prediction_mom == 0))
+  prec <- tp/(tp + fp)
+  rec <- tp/(tp + fn)
+  f1 <- (2*prec*rec)/(prec +rec)
+  print(paste0("Precision: ", prec))
+  print(paste0("Recall: ",rec)) 
+  print(paste0("F1 score: ", f1))
+}
 
-#So let's do something very basic: Let's use those three flags to predict using logistic regression
+players_train$match_runs <- ave(players_train$runs.x, players_train$match_id, FUN = sum)
+players_test$match_runs <- ave(players_test$runs.x, players_test$match_id, FUN = sum)
+players_train$match_run_share <-players_train$runs.x/players_train$match_runs
+players_test$match_run_share <-players_test$runs.x/players_test$match_runs
+
+players_train$match_wickets <- ave(players_train$wickets, players_train$match_id, FUN = sum)
+players_train$match_wicket_share <- players_train$wickets/players_train$match_wickets
+players_test$match_wickets <- ave(players_test$wickets, players_test$match_id, FUN = sum)
+players_test$match_wicket_share <- players_test$wickets/players_test$match_wickets
+
+#Let's include player strike rates and economies
+balls_played_train <- aggregate(ball ~ match_id + batsman + batting_team, ball_train, length)
+balls_played_test <- aggregate(ball ~ match_id + batsman + batting_team, ball_test, length)
+
+players_train <- merge(players_train, balls_played_train,by.x = c(1,2,3), by.y = c(1,2,3), all = TRUE)
+players_train$ball[is.na(players_train$ball)] <- 0
+
+players_test <- merge(players_test, balls_played_test,by.x = c(1,2,3), by.y = c(1,2,3), all = TRUE)
+players_test$ball[is.na(players_test$ball)] <- 0
+
+players_train$sr <- (players_train$runs.x / players_train$ball)*100
+players_test$sr <- (players_test$runs.x / players_test$ball)*100
+players_train$sr[is.nan(players_train$sr)] <- 0
+players_test$sr[is.nan(players_test$sr)] <- 0
+
+#Maybe the guys who finish off the job have an advantage
+last_players_train <- aggregate(batsman ~ match_id + inning, ball_train, function(x){tail(x)[1]})
+last_ns_train <- aggregate(non_striker ~ match_id + inning, ball_train, function(x){tail(x)[1]})
+last_batsmen_train <- merge(last_players_train, last_ns_train, by = c(1,2))
+last_batsmen_train <- last_batsmen_train[last_batsmen_train$inning == 2,]
+
+last_players_test <- aggregate(batsman ~ match_id + inning, ball_test, function(x){tail(x)[1]})
+last_ns_test <- aggregate(non_striker ~ match_id + inning, ball_test, function(x){tail(x)[1]})
+last_batsmen_test <- merge(last_players_test, last_ns_test, by = c(1,2))
+last_batsmen_test <- last_batsmen_test[last_batsmen_test$inning == 2,]
+
+players_train <- merge(players_train, last_batsmen_train, by = 'match_id', all = TRUE)
+players_test <- merge(players_test, last_batsmen_test, by = 'match_id', all = TRUE)
+
+players_train$finisher_flag <- 0
+players_train$finisher_flag[players_train$win_by_wickets > 0 & (players_train$batsman.x == players_train$batsman.y| players_train$batsman.x == players_train$non_striker)] <- 1
+players_test$finisher_flag <- 0
+players_test$finisher_flag[players_test$win_by_wickets > 0 & (players_test$batsman.x == players_test$batsman.y| players_test$batsman.x == players_test$non_striker)] <- 1
+
+overs_bowled_train <- aggregate(over ~ match_id + bowler, ball_train, function(x) {length(unique(x))})
+players_train <- merge(players_train, overs_bowled_train, by.x = c(1,2), by.y=c(1,2),all = TRUE)
+overs_bowled_test <- aggregate(over ~ match_id + bowler, ball_test, function(x) {length(unique(x))})
+players_test <- merge(players_test, overs_bowled_test, by.x = c(1,2), by.y=c(1,2), all = TRUE)
+
+#Find out the economy rate for every bowler
+players_train$economy <- players_train$runs.y/players_train$over
+players_train$economy[is.na(players_train$economy)] <- 0
+
+players_test$economy <- players_test$runs.y/players_test$over
+players_test$economy[is.na(players_test$economy)] <- 0
+
+players_train$bat_flag <- 0
+players_train$bat_flag[players_train$runs.x >= 15] <- 1
+players_train$bowl_flag <- 0
+players_train$bowl_flag[players_train$wickets > 1] <- 1
+
+players_test$bat_flag <- 0
+players_test$bat_flag[players_test$runs.x >= 15] <- 1
+players_test$bowl_flag <- 0
+players_test$bowl_flag[players_test$wickets > 1] <- 1
+
+#A dataframe to look at the ones the model got wrong
+wrong <- players_test[players_test$is_mom != players_test$prediction_mom,]
+#######################################################################################################
+#And now, the models
 library(caret)
 # define training control
-train_control<- trainControl(method="cv", number=10)
+train_control<- trainControl(method="repeatedcv", number=10, repeats = 10, savePred=TRUE)
 
 players_train$is_mom <- as.factor(players_train$is_mom)
 players_test$is_mom <- as.factor(players_test$is_mom)
-# train the model 
-logistic_mom_basic<- train(is_mom ~ winning_side 
-              + is_top_scorer
-              + is_top_wicket_taker, data=players_train, trControl=train_control, method="glm", family=binomial())
-
-# print cv scores
-summary(logistic_mom_basic)
-varImp(logistic_mom_basic)
-
-#Alright, let's try to predict on the test set
-players_test$prediction_mom <- predict(logistic_mom_basic, players_test)
+#logistic regression model
+logistic_mom_finish <- train(is_mom ~ winning_side +runs.x + wickets + runs.y
+                             + is_top_scorer + is_top_wicket_taker
+                             + match_run_share + match_runs + finisher_flag
+                             + bat_flag + bowl_flag,data=players_train, trControl=train_control, method="glm", family=binomial())
+players_test$pred_prob <- predict(logistic_mom_finish, players_test, type = "prob")
+players_test$max_match_prob <- ave(players_test$pred_prob[2], players_test$match_id, FUN = max)
+players_test$prediction_mom <- 0
+players_test$prediction_mom[players_test$pred_prob[2] == players_test$max_match_prob] <- 1
+#Let's see how well it does
 table(players_test$is_mom, players_test$prediction_mom)
+prf()
 
-# Output:
-#   0    1
-# 0 3140   41
-# 1   86   74
-
-#Let's use another logistic model, this time using the actual runs and wickets too
-logistic_mom_flag<- train(is_mom ~ winning_side +runs.x + wickets
-                           + is_top_scorer
-                           + is_top_wicket_taker, data=players_train, trControl=train_control, method="glm", family=binomial())
-players_test$prediction_mom <- predict(logistic_mom_flag, players_test)
+#Neural network with these same flags
+library(neuralnet)
+nn_finish <- neuralnet(as.numeric(as.character(is_mom)) ~ winning_side +runs.x + wickets + runs.y
+                             + is_top_scorer + is_top_wicket_taker
+                             + match_run_share + match_runs + finisher_flag
+                             + bat_flag + bowl_flag,data=players_train,hidden=5, threshold = 0.1, lifesign = "full", stepmax = 1e6, linear.output = FALSE, act.fct = "logistic")
+h <- compute(nn_finish, players_test[c(7,8,11,12,10,14,16,15,24,30,31)])
+#Now, let's assign these as probabilities and see how well it performs
+players_test$pred_prob <- h$net.result
+players_test$max_match_prob <- ave(players_test$pred_prob, players_test$match_id, FUN = max)
+players_test$prediction_mom <- 0
+players_test$prediction_mom[players_test$pred_prob == players_test$max_match_prob] <- 1
+#Let's see how well it does
 table(players_test$is_mom, players_test$prediction_mom)
-
-# Output:
-#   0    1
-# 0 3145   36
-# 1   73   87
-
-#Okay, now let's fit a simple decision tree on runs and wickets, and see its performance
-library(party)
-dt_basic <- ctree(is_mom ~ winning_side + runs.x + wickets, players_train)
-players_test$prediction_mom <- predict(dt_basic, players_test)
-table(players_test$is_mom, players_test$prediction_mom)
-
-# Output:
-#   0    1
-# 0 3124   57
-# 1   68   92
-
-#Let's include the flags in the decision tree as well
-dt_flag <- ctree(is_mom ~ winning_side + is_top_scorer + runs.x + wickets + is_top_wicket_taker, players_train)
-players_test$prediction_mom <- predict(dt_flag, players_test)
-table(players_test$is_mom, players_test$prediction_mom)
-#Oh wow, the accuracy actually fell.
-
-# Output:
-#   0    1
-# 0 3155   26
-# 1   81   79
-
-#The logistic regression model definitely looks much better. I have to develop it more somehow.
-#What other factors could be important in becoming man of the match?
-
-#Let's also try the runs conceded, though it's unlikely it'll have much of an effect
-logistic_mom_all <- train(is_mom ~ winning_side +runs.x + wickets + runs.y
-                          + is_top_scorer
-                          + is_top_wicket_taker, data=players_train, trControl=train_control, method="glm", family=binomial())
-players_test$prediction_mom <- predict(logistic_mom_all, players_test)
-table(players_test$is_mom, players_test$prediction_mom)
-#Sliightly better, though not by much.
-
-# Output:
-#   0    1
-# 0 3141   40
-# 1   70   90
-
-#Maybe MoM's being batsmen or bowlers depends on who was batting first or second
-results_train <- mom_train[c(1,6,7)]
-results_test <- mom_test[c(1,6,7)]
-
-players_train <- merge(players_train, results_train, by.x = "match_id", by.y = "id", all = TRUE)
-players_test <- merge(players_test, results_test, by.x = "match_id", by.y = "id", all = TRUE)
-#Fit the model
-logistic_mom_result <- train(is_mom ~ winning_side +runs.x + wickets + runs.y
-                          + is_top_scorer + is_top_wicket_taker
-                          + win_by_runs + win_by_wickets, data=players_train, trControl=train_control, method="glm", family=binomial())
-players_test$prediction_mom <- predict(logistic_mom_result, players_test)
-table(players_test$is_mom, players_test$prediction_mom)
-#Nope. It wasn't actually better. logistic_mom_all is better than logistic_mom_result.
-
+prf()
