@@ -59,7 +59,7 @@ If you train a logistic regression model on the data using all of these features
 
 **The F1-score for the model is about 70%.**
 
-Yeeeeup. Looking simply at the macro-level information of a match, like the runs scored and the wickets taken, a simple logistic regression model is able to correctly predict the Man of the Match, 7 times out of 10. That's pretty good. 
+Yeeeeup. Looking simply at the macro-level information of a match, like the runs scored and the wickets taken, a simple logistic regression model (or a neural network with a logistic activation function, there's not much difference to justify the increase in computational cost) is able to correctly predict the Man of the Match, 7 times out of 10. That's pretty good. 
 
 But what's it missing?
 
