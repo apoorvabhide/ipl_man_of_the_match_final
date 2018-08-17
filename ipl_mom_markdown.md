@@ -22,13 +22,13 @@ If you're interested in the 'how', I'll provide a link to the code at the end.
 
 Here's a look at the basic indicators of performance, i.e. how many runs a batsman scored and how many wickets a bowler took:
 
-![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png)![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-2.png)
+![plot of chunk unnamed-chunk-2](unnamed-chunk-2-1.png)![plot of chunk unnamed-chunk-2](unnamed-chunk-2-2.png)
 
 Rather expectedly, most batsmen who are awarded the Man of the Match score between 50-100 runs. (That tiiiny sliver above 150 came from the very first match where McCullum scored 158.) The average bowler who gets the man of the match gets 2-3 wickets. This is a bar plot of every bowler who has ever bowled in the IPL, so there will be overlaps between these two plots, but this is otherwise pretty much what you would expect. (Another interesting fact: the only two bowlers who have taken 6 wickets in an IPL match are Sohail Tanvir and Adam Zampa.) 
 
 Now, let's consider the other thing you'd immediately guess about the man of the match: that he either took the most wickets in the match or scored the most runs, at least most of the time.
 
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png)
+![plot of chunk unnamed-chunk-3](unnamed-chunk-3-1.png)
 
 
 Well, your intuition in this case would be.. kind of right. As you can see, most of the players do fall into either one of those buckets. It also appears, interestingly, that the top scorers win A LOT more often than the top wicket takers. T20 is a batsman's game, after all.
@@ -39,7 +39,7 @@ A much more interesting metric to talk about, actually, would be the *share* of 
 
 Let's look at *exactly* how helpful that would be, shall we?
 
-![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png)
+![plot of chunk unnamed-chunk-4](unnamed-chunk-4-1.png)
 
 Most Men of the Match (?) score around 20-30% of the match runs. That looks usable.
 Now about the 'predicting' part of this... thing.
