@@ -57,7 +57,7 @@ If you train a logistic regression model on the data using all of these features
 10. Flag to indicate if >= 2 wickets taken
 11. Flag to indicate if > 15 runs scored)
 
-The F1-score for the model is about 70%.
+**The F1-score for the model is about 70%.**
 
 Yeeeeup. Looking simply at the macro-level information of a match, like the runs scored and the wickets taken, a simple logistic regression model is able to correctly predict the Man of the Match, 7 times out of 10. That's pretty good. 
 
