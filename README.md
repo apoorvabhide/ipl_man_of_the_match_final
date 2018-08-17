@@ -1,5 +1,7 @@
 This is a project to predict who the man of the match of a given cricket match will be, given the ball-by-ball match data.
+
 Converted to a player-match level table, it becomes a classification problem.
+
 In real world terms, the problem I'm trying to solve is this:
   The match is done. Both innings are done, we know the result and how each batsman and bowler did.
   Based on that, can I predict who the man of the match is going to be?
