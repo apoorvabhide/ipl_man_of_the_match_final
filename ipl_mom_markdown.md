@@ -51,7 +51,7 @@ If you train a logistic regression model on the data using all of these features
 4. Runs conceded
 5. Flag to indicate if top scorer
 6. Flag to indicate if top wicket taker
-7.% of the match runs scored by the player
+7. % of the match runs scored by the player
 8. Total runs scored in the match
 9. Flag to indicate if he was a finisher (not out at the end, on the winnning side)
 10. Flag to indicate if >= 2 wickets taken
