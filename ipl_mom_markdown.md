@@ -22,7 +22,7 @@ If you're interested in the 'how', I'll provide a link to the code at the end.
 
 Here's a look at the basic indicators of performance, i.e. how many runs a batsman scored and how many wickets a bowler took:
 
-![plot of chunk unnamed-chunk-2](~/R Work/unnamed-chunk-2-1.png)![plot of chunk unnamed-chunk-2](~/R Work/unnamed-chunk-2-2.png)
+![plot of chunk unnamed-chunk-2]( ipl_man_of_the_match/unnamed-chunk-2-1.png)![plot of chunk unnamed-chunk-2]( ipl_man_of_the_match/unnamed-chunk-2-2.png )
 
 Rather expectedly, most batsmen who are awarded the Man of the Match score between 50-100 runs. (That tiiiny sliver above 150 came from the very first match where McCullum scored 158.) The average bowler who gets the man of the match gets 2-3 wickets. This is a bar plot of every bowler who has ever bowled in the IPL, so there will be overlaps between these two plots, but this is otherwise pretty much what you would expect. (Another interesting fact: the only two bowlers who have taken 6 wickets in an IPL match are Sohail Tanvir and Adam Zampa.) 
 
