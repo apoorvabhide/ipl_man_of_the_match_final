@@ -277,26 +277,32 @@ hist(x = players_mom$match_run_share[players_mom$match_run_share != 0], main = '
      ylab = 'Number of batsmen', col = '#00FFFF')
 ```
 
-Most Men of the Match (?) score around 20-30% of the match runs. That looks usable.
-Now about the 'predicting' part of this... thing.
-Well, I did all of that for you, and achieved an accuracy of... **cue drumroll**
+Most Men of the Match (?) score around 20-30% of the match runs. That looks usable. If you train a logistic regression model on the data using all of these features
 
-#0.7
+(Just to be specific, here's a list:
 
-Yeeeeup. Looking simply at the macro-level information of a match, like the runs scored and the wickets taken, a simple logistic regression model is able to correctly predict the Man of the Match, 7 times out of 10. That's pretty good. 
+Whether he was on the winnning side
+Runs scored
+Wickets taken
+Runs conceded
+Flag to indicate if top scorer
+Flag to indicate if top wicket taker 7.% of the match runs scored by the player
+Total runs scored in the match
+Flag to indicate if he was a finisher (not out at the end, on the winnning side)
+Flag to indicate if >= 2 wickets taken
+Flag to indicate if > 15 runs scored)
+The F1-score for the model is about 70%.
+
+Yeeeeup. Looking simply at the macro-level information of a match, like the runs scored and the wickets taken, a simple logistic regression model is able to correctly predict the Man of the Match, 7 times out of 10. That's pretty good.
 
 But what's it missing?
 
-For example, one of the interesting cases the model gets wrong is that of [Match 8 in IPL 2011.](http://www.espncricinfo.com/series/8048/scorecard/501205/royal-challengers-bangalore-vs-mumbai-indians-8th-match-indian-premier-league-2011), when Sachin Tendulkar was given the Man of the Match for scoring 55(46), but Ambati Rayudu was there with him till the end scoring 63(50). Interestingly enough, Sachin [shared](http://www.dnaindia.com/sports/report-ipl-4-sachin-tendulkar-shares-his-man-of-the-match-award-with-ambati-rayudu-1531467) the Man of the Match award with Rayudu in that match, saying he deserved it more.
+Let's take an example. One of the interesting cases the model gets wrong is that of Match 8 in IPL 2011. The model flags Ambati Rayudu as the man of the match, while Sachin was given the award in the actual game. Sachin Tendulkar was given the Man of the Match for scoring 55(46), but Ambati Rayudu was there with him till the end scoring 63(50). Interestingly enough, Sachin shared the Man of the Match award with Rayudu in that match, saying he deserved it more.
 
 Anyway, let's look at another example. In the 5th match of the first season, David Hussey top-scored for KKR with 38 runs in 45 balls. His bowling figures were 3-0-35-1. In the same match, Murali Kartik took 3 for 17. In this case, the model flagged Kartik as the Man of the Match, but Hussey was awarded.
 
-Or another one. In the [IPL 2015 final](http://www.espncricinfo.com/series/8048/scorecard/829823/mumbai-indians-vs-chennai-super-kings-final-pepsi-indian-premier-league-2015), Lendl Simmons scored 68(45). Rohit Sharma scored 50(26). Neither had any impact with the ball. The model flagged Simmons. Rohit Sharma took home the cheque.
+Or another one. In the IPL 2015 final, Lendl Simmons scored 68(45). Rohit Sharma scored 50(26). Neither had any impact with the ball. The model flagged Simmons. Rohit Sharma took home the cheque.
 
-Or another. [Match 40, IPL 2012.](http://www.espncricinfo.com/series/8048/scorecard/548346/mumbai-indians-vs-deccan-chargers-40th-match-indian-premier-league-2012) Malinga took 4-16. Steyn took 2-10. Steyn was the Man of the Match. [Match 43, IPL 2012.](http://www.espncricinfo.com/series/8048/scorecard/548349/rajasthan-royals-vs-delhi-daredevils-43rd-match-indian-premier-league-2012) Sehwag scored 73(39). Pawan Negi took 4-18. Negi was the Man of the Match.
+Or another. Match 40, IPL 2012. Lasith Malinga took 4-16. Steyn took 2-10. Steyn was the Man of the Match. Match 43, IPL 2012. Sehwag scored 73(39). Pawan Negi took 4-18. Negi was the Man of the Match.
 
-And that is why predicting the Man of the Match is not as easy as it looks. That is why it cannot be predicted entirely from macro-information.
-That's what the model is missing: 
-**Game Context**. 
-Understanding why, sometimes, 2-10 is more impactful than 4-16, and quantifying it.
-That is what I will be trying to add next. Watch this space.
+That, I think, is why predicting the Man of the Match is not as easy as it looks. That is why it cannot be predicted entirely from macro-information. What the model is missing, then, is Game Context - understanding why, sometimes, 2-10 is more impactful than 4-16, and quantifying it. I will work on capturing that in the coming days. Any help or suggestions are greatly appreciated.
